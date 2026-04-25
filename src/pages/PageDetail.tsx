@@ -33,7 +33,7 @@ export function PageDetail() {
   const [uploading, setUploading] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState(false);
 
-  const pageUrl = `${window.location.origin}/page/${jobId}/${pageNumber}`;
+  const pageUrl = `${window.location.origin}${import.meta.env.BASE_URL}#/page/${jobId}/${pageNumber}`;
 
   useEffect(() => {
     if (jobId && pageNumber) {
