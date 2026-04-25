@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Toaster } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Eye, Plus, Gear } from '@phosphor-icons/react';
+import { Eye, Plus, Gear, MagnifyingGlass, X } from '@phosphor-icons/react';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
 import { CreatePageDialog } from '@/components/CreatePageDialog';
 import { PageViewer } from '@/components/PageViewer';
@@ -26,6 +27,9 @@ function App() {
   const [createPageOpen, setCreatePageOpen] = useState(false);
   const [schemaEditorOpen, setSchemaEditorOpen] = useState(false);
   const [createPagePreselect, setCreatePagePreselect] = useState<{ jobId?: string; categoryId?: string }>({});
+  
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [pageSearchQuery, setPageSearchQuery] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -43,6 +47,23 @@ function App() {
       setSelectedPageNumber('');
     }
   }, [selectedJobId]);
+
+  const filteredJobs = useMemo(() => {
+    if (!jobSearchQuery.trim()) return jobs;
+    const query = jobSearchQuery.toLowerCase();
+    return jobs.filter(job => 
+      job.id.toLowerCase().includes(query) || 
+      job.categoryId.toLowerCase().includes(query)
+    );
+  }, [jobs, jobSearchQuery]);
+
+  const filteredPageNumbers = useMemo(() => {
+    if (!pageSearchQuery.trim()) return pageNumbers;
+    const query = pageSearchQuery.toLowerCase();
+    return pageNumbers.filter(page => 
+      page.toLowerCase().includes(query)
+    );
+  }, [pageNumbers, pageSearchQuery]);
 
   const loadJobs = async () => {
     try {
@@ -142,32 +163,80 @@ function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="job-id" className="font-mono text-sm">Job ID</Label>
+              <div className="relative">
+                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                  id="job-search"
+                  value={jobSearchQuery}
+                  onChange={(e) => setJobSearchQuery(e.target.value)}
+                  placeholder="Search jobs..."
+                  className="pl-9 font-mono text-sm mb-2"
+                />
+                {jobSearchQuery && (
+                  <button
+                    onClick={() => setJobSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
               <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                 <SelectTrigger id="job-id">
                   <SelectValue placeholder="Select job" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jobs.map((job) => (
-                    <SelectItem key={job.id} value={job.id} className="font-mono">
-                      {job.id}
-                    </SelectItem>
-                  ))}
+                  {filteredJobs.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      No jobs found
+                    </div>
+                  ) : (
+                    filteredJobs.map((job) => (
+                      <SelectItem key={job.id} value={job.id} className="font-mono">
+                        {job.id}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="page-number" className="font-mono text-sm">Page Number</Label>
+              <div className="relative">
+                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                  id="page-search"
+                  value={pageSearchQuery}
+                  onChange={(e) => setPageSearchQuery(e.target.value)}
+                  placeholder="Search pages..."
+                  className="pl-9 font-mono text-sm mb-2"
+                />
+                {pageSearchQuery && (
+                  <button
+                    onClick={() => setPageSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
               <Select value={selectedPageNumber} onValueChange={setSelectedPageNumber}>
                 <SelectTrigger id="page-number">
                   <SelectValue placeholder="Select page" />
                 </SelectTrigger>
                 <SelectContent>
-                  {pageNumbers.map((num) => (
-                    <SelectItem key={num} value={num} className="font-mono">
-                      {num}
-                    </SelectItem>
-                  ))}
+                  {filteredPageNumbers.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      No pages found
+                    </div>
+                  ) : (
+                    filteredPageNumbers.map((num) => (
+                      <SelectItem key={num} value={num} className="font-mono">
+                        {num}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

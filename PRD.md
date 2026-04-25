@@ -47,6 +47,13 @@ This is a data management tool with CRUD operations, dropdown navigation, and sc
 - **Progression**: Select category → View pages → Edit page → Reorder/add/delete blocks → Save schema
 - **Success criteria**: Schema changes reflect immediately in page creation, existing data remains intact, block types (file/markdown/checkbox) work correctly
 
+### Search and Filter
+- **Functionality**: Real-time search across jobs and pages to quickly locate specific items
+- **Purpose**: Rapidly find jobs or pages in large specification sets
+- **Trigger**: Type in search fields above Job ID or Page Number dropdowns
+- **Progression**: Type query → List filters instantly → Select from filtered results → Clear search to reset
+- **Success criteria**: Searches match job IDs, category names, and page numbers; filtering is immediate; clear button removes filter
+
 ## Edge Case Handling
 
 - **Empty Dropdowns**: Show placeholder text when no jobs or pages exist, with quick links to create
@@ -140,6 +147,8 @@ Animations should feel precise and quick - snappy state changes that communicate
   - `TextAa` for markdown block
   - `CheckSquare` for checkbox block
   - `Gear` for schema settings
+  - `MagnifyingGlass` for search fields
+  - `X` for clear search
   
 - **Spacing**:
   - Page margins: `px-8 py-6`
