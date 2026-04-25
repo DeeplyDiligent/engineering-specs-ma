@@ -8,7 +8,7 @@ A customizable CMS tool for engineering teams to upload, manage, and organize te
 3. **Flexible** - Schema customization allows teams to define their own page structures and field types
 
 **Complexity Level**: Light Application (multiple features with basic state)
-This is a data management tool with CRUD operations, dropdown navigation, and schema editing. It has multiple views but straightforward state management centered around Firebase integration.
+This is a data management tool with CRUD operations, dropdown navigation, and schema editing. It has multiple views but straightforward state management centered around Firebase integration. **All data persistence is handled exclusively through Firebase Realtime Database and Firebase Storage - no localStorage, sessionStorage, or spark.kv is used.**
 
 ## Essential Features
 
@@ -62,6 +62,44 @@ This is a data management tool with CRUD operations, dropdown navigation, and sc
 - **File Upload Failures**: Show error toast and allow retry without losing form data
 - **Concurrent Edits**: Last write wins (acceptable for team tool)
 - **Invalid Schema**: Validate block types and show errors during schema editing
+
+## Data Architecture
+
+**All data is stored exclusively in Firebase - no local storage or caching mechanisms are used.**
+
+### Firebase Realtime Database Structure
+```
+/schemas
+  /{categoryId}
+    - id: string
+    - name: string
+    - pages: PageSchema[]
+
+/jobs
+  /{jobId}
+    - id: string
+    - categoryId: string
+    - createdAt: timestamp
+
+/pages
+  /{jobId}
+    /{pageNumber}
+      - jobId: string
+      - pageNumber: string
+      - categoryId: string
+      - values: Record<blockId, value>
+```
+
+### Firebase Storage Structure
+```
+/{jobId}/{pageNumber}/{blockId}/{filename}
+```
+
+### Initialization
+- On first load, check if Firebase `/schemas` is empty
+- If empty, seed with default engineering and manufacturing categories
+- Seed data is only loaded once when Firebase is completely empty
+- No localStorage or spark.kv is used for tracking initialization state
 
 ## Design Direction
 

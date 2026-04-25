@@ -1,15 +1,11 @@
 import { dbService } from './db-service';
 
-const SEED_DATA_LOADED_KEY = 'seed_data_loaded';
-
 export async function initializeSeedData() {
-  const alreadyLoaded = localStorage.getItem(SEED_DATA_LOADED_KEY);
-  
-  if (alreadyLoaded === 'true') {
-    return;
-  }
-
   try {
+    const existingSchemas = await dbService.getAllSchemas();
+    if (Object.keys(existingSchemas).length > 0) {
+      return;
+    }
     const schemas = {
       "engineering_projects": {
         "id": "engineering_projects",
@@ -151,7 +147,6 @@ export async function initializeSeedData() {
       }
     }
 
-    localStorage.setItem(SEED_DATA_LOADED_KEY, 'true');
     console.log('Seed data loaded successfully');
   } catch (error) {
     console.error('Failed to load seed data:', error);
