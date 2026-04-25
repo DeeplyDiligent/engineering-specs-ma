@@ -221,9 +221,9 @@ export function SchemaEditor() {
         <Card className="p-8">
           {view === 'categories' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                 <p className="text-muted-foreground">Select a category to edit its pages</p>
-                <Button onClick={() => setView('newCategory')} className="gap-2 bg-action text-action-foreground hover:bg-action/90">
+                <Button onClick={() => setView('newCategory')} className="gap-2 bg-action text-action-foreground hover:bg-action/90 w-full md:w-auto">
                   <Plus /> New Category
                 </Button>
               </div>
