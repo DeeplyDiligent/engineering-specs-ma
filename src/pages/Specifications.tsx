@@ -8,10 +8,8 @@ import { Card } from '@/components/ui/card';
 import { Eye, Plus, Gear, MagnifyingGlass, X } from '@phosphor-icons/react';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
 import { CreatePageDialog } from '@/components/CreatePageDialog';
-import { PageViewer } from '@/components/PageViewer';
 import { dbService } from '@/lib/db-service';
 import { initializeSeedData } from '@/lib/seed-data';
-import type { PageData, PageSchema } from '@/lib/types';
 import { toast } from 'sonner';
 
 export function Specifications() {
@@ -20,8 +18,6 @@ export function Specifications() {
   const [selectedJobId, setSelectedJobId] = useState('');
   const [selectedPageNumber, setSelectedPageNumber] = useState('');
   const [pageNumbers, setPageNumbers] = useState<string[]>([]);
-  const [currentPageData, setCurrentPageData] = useState<PageData | null>(null);
-  const [currentPageSchema, setCurrentPageSchema] = useState<PageSchema | null>(null);
   
   const [createJobOpen, setCreateJobOpen] = useState(false);
   const [createPageOpen, setCreatePageOpen] = useState(false);
@@ -88,34 +84,7 @@ export function Specifications() {
       return;
     }
 
-    try {
-      const pageData = await dbService.getPageData(selectedJobId, selectedPageNumber);
-      if (!pageData) {
-        toast.error('Page not found');
-        return;
-      }
-
-      const schema = await dbService.getSchema(pageData.categoryId);
-      if (!schema) {
-        toast.error('Schema not found');
-        return;
-      }
-
-      const pageSchema = schema.pages.find(p => {
-        const pageDataBlocks = Object.keys(pageData.values);
-        return p.blocks.some(b => pageDataBlocks.includes(b.id));
-      });
-
-      if (!pageSchema) {
-        toast.error('Page schema not found');
-        return;
-      }
-
-      setCurrentPageData(pageData);
-      setCurrentPageSchema(pageSchema);
-    } catch (error) {
-      toast.error('Failed to load page');
-    }
+    navigate(`/page/${selectedJobId}/${selectedPageNumber}`);
   };
 
   const handleJobCreated = (jobId: string, categoryId: string) => {
@@ -129,12 +98,6 @@ export function Specifications() {
     setSelectedJobId(jobId);
     setSelectedPageNumber(pageNumber);
     setCreatePagePreselect({});
-  };
-
-  const handlePageUpdate = () => {
-    if (selectedJobId && selectedPageNumber) {
-      handleViewPage();
-    }
   };
 
   return (
@@ -268,21 +231,11 @@ export function Specifications() {
           </div>
         </Card>
 
-        {currentPageData && currentPageSchema && (
-          <PageViewer
-            pageData={currentPageData}
-            pageSchema={currentPageSchema}
-            onUpdate={handlePageUpdate}
-          />
-        )}
-
-        {!currentPageData && (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground">
-              Select a job and page number, then click "View Page" to get started
-            </p>
-          </Card>
-        )}
+        <Card className="p-12 text-center">
+          <p className="text-muted-foreground">
+            Select a job and page number, then click "View Page" to get started
+          </p>
+        </Card>
       </main>
 
       <CreateJobDialog
