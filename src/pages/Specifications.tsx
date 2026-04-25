@@ -103,15 +103,24 @@ export function Specifications() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Specifications</h1>
-            <p className="text-sm text-muted-foreground mt-1">Engineering CMS</p>
+        <div className="container mx-auto px-8 py-4">
+          <div className="flex items-center justify-between mb-3 md:mb-0">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">Specifications</h1>
+              <p className="text-sm text-muted-foreground mt-1">Engineering CMS</p>
+            </div>
+            <Button
+              onClick={() => navigate('/schema-editor')}
+              variant="outline"
+              className="gap-2 hidden md:flex"
+            >
+              <Gear /> Schema Editor
+            </Button>
           </div>
           <Button
             onClick={() => navigate('/schema-editor')}
             variant="outline"
-            className="gap-2"
+            className="gap-2 w-full md:hidden"
           >
             <Gear /> Schema Editor
           </Button>
