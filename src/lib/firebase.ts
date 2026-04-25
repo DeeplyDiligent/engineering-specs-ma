@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
@@ -13,6 +13,6 @@ const firebaseConfig = {
   measurementId: "G-FSLQ1D8FEN"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getDatabase(app);
 export const storage = getStorage(app);
