@@ -125,7 +125,7 @@ export function Specifications() {
     setCreatePageOpen(true);
   };
 
-  const handlePageCreated = (jobId: string, _pageNumber: string) => {
+  const handlePageCreated = (jobId: string, pageNumber: string) => {
     loadJobs();
     setSelectedJobId(jobId);
     loadPagesForJob(jobId);

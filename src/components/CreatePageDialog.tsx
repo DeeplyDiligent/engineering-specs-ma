@@ -107,16 +107,12 @@ export function CreatePageDialog({
       return;
     }
 
-    const pageNumber = computedNextPageNumber;
-
     setLoading(true);
     try {
-      const existingPage = await dbService.getPageData(jobId, pageNumber);
-      if (existingPage) {
-        toast.error('Page number already exists for this job');
-        setLoading(false);
-        return;
-      }
+      // Re-compute the next page number at submission time to avoid stale values
+      const pagesData = await dbService.getJobPages(jobId);
+      const pageNums = Object.keys(pagesData).map(n => parseInt(n)).filter(n => !isNaN(n));
+      const pageNumber = String(pageNums.length === 0 ? 1 : Math.max(...pageNums) + 1);
 
       const selectedPage = availablePages.find(p => p.id === pageType);
       if (!selectedPage) {
