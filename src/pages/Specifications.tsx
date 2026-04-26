@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
@@ -95,6 +94,18 @@ export function Specifications() {
       job.categoryId.toLowerCase().includes(query)
     );
   }, [jobs, jobSearchQuery]);
+
+  const jobsByCategory = useMemo(() => {
+    const grouped: Record<string, Array<{ id: string; categoryId: string }>> = {};
+    for (const job of filteredJobs) {
+      const category = job.categoryId || 'Uncategorized';
+      if (!grouped[category]) grouped[category] = [];
+      grouped[category].push(job);
+    }
+    return Object.fromEntries(
+      Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
+    );
+  }, [filteredJobs]);
 
   const filteredPages = useMemo(() => {
     if (!pageSearchQuery.trim()) return pages;
@@ -210,9 +221,9 @@ export function Specifications() {
       </header>
 
       <main className="container mx-auto px-8 py-8">
-        <Card className="p-6 space-y-6 mb-8">
+        <Card className="p-6 space-y-4 mb-8">
           <div className="space-y-2">
-            <Label htmlFor="job-id" className="font-mono text-sm">Job ID</Label>
+            <Label htmlFor="job-search" className="font-mono text-sm">Jobs</Label>
             <div className="relative">
               <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
@@ -220,7 +231,7 @@ export function Specifications() {
                 value={jobSearchQuery}
                 onChange={(e) => setJobSearchQuery(e.target.value)}
                 placeholder="Search jobs..."
-                className="pl-9 font-mono text-sm mb-2"
+                className="pl-9 font-mono text-sm"
               />
               {jobSearchQuery && (
                 <button
@@ -231,25 +242,40 @@ export function Specifications() {
                 </button>
               )}
             </div>
-            <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-              <SelectTrigger id="job-id">
-                <SelectValue placeholder="Select job" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredJobs.length === 0 ? (
-                  <div className="p-2 text-sm text-muted-foreground text-center">
-                    No jobs found
-                  </div>
-                ) : (
-                  filteredJobs.map((job) => (
-                    <SelectItem key={job.id} value={job.id} className="font-mono">
-                      {job.id}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
           </div>
+
+          {Object.keys(jobsByCategory).length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                No jobs found. Click "New Job" to create one.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(jobsByCategory).map(([category, categoryJobs]) => (
+                <div key={category}>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    {category}
+                  </h3>
+                  <div className="space-y-1">
+                    {categoryJobs.map((job) => (
+                      <button
+                        key={job.id}
+                        onClick={() => setSelectedJobId(job.id)}
+                        className={`w-full text-left px-3 py-2 rounded-md font-mono text-sm transition-colors ${
+                          selectedJobId === job.id
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        {job.id}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {selectedJobId ? (
