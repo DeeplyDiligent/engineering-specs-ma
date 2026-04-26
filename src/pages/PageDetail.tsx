@@ -53,7 +53,18 @@ export function PageDetail() {
         return;
       }
 
-      const schema = await dbService.getSchema(data.categoryId);
+      let resolvedCategoryId = data.categoryId;
+      if (!resolvedCategoryId) {
+        const job = await dbService.getJob(jobId);
+        if (!job) {
+          toast.error('Job not found');
+          navigate('/');
+          return;
+        }
+        resolvedCategoryId = job.categoryId;
+      }
+
+      const schema = await dbService.getSchema(resolvedCategoryId);
       if (!schema) {
         toast.error('Schema not found');
         navigate('/');

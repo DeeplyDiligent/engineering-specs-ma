@@ -39,6 +39,7 @@ export function CreatePageDialog({
         setJobId(preselectedJobId);
       }
       if (preselectedCategoryId) {
+        setCategoryId(preselectedCategoryId);
         loadPagesForCategory(preselectedCategoryId);
       }
       if (nextPageNumber) {
