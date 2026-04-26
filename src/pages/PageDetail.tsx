@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 export function PageDetail() {
   const { jobId, pageNumber } = useParams<{ jobId: string; pageNumber: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const qrRef = useRef<HTMLDivElement>(null);
   
   const [pageData, setPageData] = useState<PageData | null>(null);
@@ -39,7 +40,7 @@ export function PageDetail() {
     if (jobId && pageNumber) {
       loadPageData();
     }
-  }, [jobId, pageNumber]);
+  }, [jobId, pageNumber, location.key]);
 
   const loadPageData = async () => {
     if (!jobId || !pageNumber) return;
