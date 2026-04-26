@@ -60,6 +60,11 @@ export const dbService = {
     await set(pageRef, data);
   },
 
+  async deletePageData(jobId: string, pageNumber: string): Promise<void> {
+    const pageRef = ref(db, `pages/${jobId}/${pageNumber}`);
+    await remove(pageRef);
+  },
+
   async uploadFile(path: string, file: File): Promise<string> {
     const fileRef = storageRef(storage, path);
     await uploadBytes(fileRef, file);

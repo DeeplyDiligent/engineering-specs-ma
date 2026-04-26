@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { dbService } from '@/lib/db-service';
@@ -13,6 +12,7 @@ interface CreatePageDialogProps {
   onOpenChange: (open: boolean) => void;
   preselectedJobId?: string;
   preselectedCategoryId?: string;
+  nextPageNumber?: string;
   onPageCreated: (jobId: string, pageNumber: string) => void;
 }
 
@@ -21,15 +21,16 @@ export function CreatePageDialog({
   onOpenChange, 
   preselectedJobId, 
   preselectedCategoryId,
+  nextPageNumber,
   onPageCreated 
 }: CreatePageDialogProps) {
   const [jobId, setJobId] = useState(preselectedJobId || '');
-  const [pageNumber, setPageNumber] = useState('');
   const [pageType, setPageType] = useState('');
   const [jobs, setJobs] = useState<Array<{ id: string; categoryId: string }>>([]);
   const [availablePages, setAvailablePages] = useState<PageSchema[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState(preselectedCategoryId || '');
+  const [computedNextPageNumber, setComputedNextPageNumber] = useState(nextPageNumber || '1');
 
   useEffect(() => {
     if (open) {
@@ -40,14 +41,20 @@ export function CreatePageDialog({
       if (preselectedCategoryId) {
         loadPagesForCategory(preselectedCategoryId);
       }
+      if (nextPageNumber) {
+        setComputedNextPageNumber(nextPageNumber);
+      }
     }
-  }, [open, preselectedJobId, preselectedCategoryId]);
+  }, [open, preselectedJobId, preselectedCategoryId, nextPageNumber]);
 
   useEffect(() => {
     if (jobId && !preselectedCategoryId) {
       loadCategoryForJob(jobId);
     }
-  }, [jobId, preselectedCategoryId]);
+    if (jobId && !nextPageNumber) {
+      computeNextPageNumber(jobId);
+    }
+  }, [jobId, preselectedCategoryId, nextPageNumber]);
 
   const loadJobs = async () => {
     try {
@@ -81,22 +88,31 @@ export function CreatePageDialog({
     }
   };
 
+  const computeNextPageNumber = async (jId: string) => {
+    try {
+      const pagesData = await dbService.getJobPages(jId);
+      const pageNums = Object.keys(pagesData).map(n => parseInt(n)).filter(n => !isNaN(n));
+      const next = pageNums.length === 0 ? 1 : Math.max(...pageNums) + 1;
+      setComputedNextPageNumber(String(next));
+    } catch (error) {
+      setComputedNextPageNumber('1');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!jobId.trim() || !pageNumber.trim() || !pageType) {
+    if (!jobId.trim() || !pageType) {
       toast.error('Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
-      const existingPage = await dbService.getPageData(jobId, pageNumber);
-      if (existingPage) {
-        toast.error('Page number already exists for this job');
-        setLoading(false);
-        return;
-      }
+      // Re-compute the next page number at submission time to avoid stale values
+      const pagesData = await dbService.getJobPages(jobId);
+      const pageNums = Object.keys(pagesData).map(n => parseInt(n)).filter(n => !isNaN(n));
+      const pageNumber = String(pageNums.length === 0 ? 1 : Math.max(...pageNums) + 1);
 
       const selectedPage = availablePages.find(p => p.id === pageType);
       if (!selectedPage) {
@@ -125,7 +141,6 @@ export function CreatePageDialog({
       onOpenChange(false);
       onPageCreated(jobId, pageNumber);
       if (!preselectedJobId) setJobId('');
-      setPageNumber('');
       setPageType('');
     } catch (error) {
       toast.error('Failed to create page');
@@ -161,14 +176,11 @@ export function CreatePageDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="page-number" className="font-mono text-sm">Page Number</Label>
-            <Input
-              id="page-number"
-              value={pageNumber}
-              onChange={(e) => setPageNumber(e.target.value)}
-              placeholder="e.g., 1, 2, 3"
-              className="font-mono"
-            />
+            <Label className="font-mono text-sm">Page Number</Label>
+            <div className="px-3 py-2 bg-muted rounded-md font-mono text-sm">
+              {computedNextPageNumber}
+            </div>
+            <p className="text-xs text-muted-foreground">Automatically assigned</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="page-type" className="font-mono text-sm">Page Type</Label>
