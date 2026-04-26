@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,6 @@ export function SchemaEditor() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<CategoryMeta[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryMeta | null>(null);
   const [selectedPageId, setSelectedPageId] = useState('');
   const [editingPage, setEditingPage] = useState<PageSchema | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,6 +23,11 @@ export function SchemaEditor() {
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newPageName, setNewPageName] = useState('');
   const [newPageId, setNewPageId] = useState('');
+
+  const selectedCategory = useMemo(() =>
+    categories.find(c => c.id === selectedCategoryId) || null,
+    [categories, selectedCategoryId]
+  );
 
   useEffect(() => {
     loadCategories();
@@ -42,7 +46,6 @@ export function SchemaEditor() {
     const category = categories.find(c => c.id === categoryId);
     if (category) {
       setSelectedCategoryId(categoryId);
-      setSelectedCategory(category);
       setView('pages');
     }
   };
