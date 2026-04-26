@@ -22,6 +22,8 @@ export function CreateJobDialog({ open, onOpenChange, onJobCreated }: CreateJobD
 
   useEffect(() => {
     if (open) {
+      setJobId('');
+      setCategoryId('');
       loadCategories();
     }
   }, [open]);
@@ -29,7 +31,11 @@ export function CreateJobDialog({ open, onOpenChange, onJobCreated }: CreateJobD
   const loadCategories = async () => {
     try {
       const schemas = await dbService.getAllSchemas();
-      setCategories(Object.values(schemas));
+      const cats = Object.values(schemas);
+      setCategories(cats);
+      if (cats.length === 1) {
+        setCategoryId(cats[0].id);
+      }
     } catch (error) {
       toast.error('Failed to load categories');
     }
