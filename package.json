@@ -9,6 +9,7 @@
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
         "optimize": "vite optimize",
+        "preview": "vite preview",
         "test": "playwright test"
     },
     "dependencies": {

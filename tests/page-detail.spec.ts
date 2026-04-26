@@ -78,8 +78,8 @@ test.describe('PageDetail — handles missing categoryId on newly created page',
   test('does not navigate away when categoryId is missing from page data', async ({ page }) => {
     await page.goto('/#/page/TEST-JOB-001/1');
 
-    // Wait for the page to settle
-    await page.waitForTimeout(3000);
+    // Wait for the page to fully load (heading is the indicator)
+    await expect(page.getByRole('heading', { name: 'Site Plan', level: 1 })).toBeVisible({ timeout: 10000 });
 
     // Should still be on the page detail route, not redirected to '/'
     expect(page.url()).toContain('/page/TEST-JOB-001/1');
