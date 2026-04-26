@@ -60,10 +60,16 @@ export function PageDetail() {
         return;
       }
 
-      const foundPageSchema = schema.pages.find(p => {
-        const pageDataBlocks = Object.keys(data.values);
-        return p.blocks.some(b => pageDataBlocks.includes(b.id));
-      });
+      let foundPageSchema = data.pageSchemaId
+        ? schema.pages.find(p => p.id === data.pageSchemaId)
+        : undefined;
+
+      if (!foundPageSchema) {
+        const pageDataBlocks = Object.keys(data.values || {});
+        foundPageSchema = schema.pages.find(p =>
+          p.blocks.some(b => pageDataBlocks.includes(b.id))
+        );
+      }
 
       if (!foundPageSchema) {
         toast.error('Page schema not found');
@@ -71,9 +77,19 @@ export function PageDetail() {
         return;
       }
 
+      const existingValues = data.values || {};
+      const initializedValues: Record<string, any> = {};
+      foundPageSchema.blocks.forEach(block => {
+        if (block.type === 'checkbox') {
+          initializedValues[block.id] = existingValues[block.id] ?? false;
+        } else {
+          initializedValues[block.id] = existingValues[block.id] ?? '';
+        }
+      });
+
       setPageData(data);
       setPageSchema(foundPageSchema);
-      setValues(data.values);
+      setValues(initializedValues);
     } catch (error) {
       toast.error('Failed to load page');
       navigate('/');

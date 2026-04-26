@@ -23,6 +23,7 @@ export interface PageData {
   jobId: string;
   pageNumber: string;
   categoryId: string;
+  pageSchemaId?: string;
   values: Record<string, any>;
 }
 
