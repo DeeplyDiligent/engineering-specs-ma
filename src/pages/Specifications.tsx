@@ -143,6 +143,23 @@ export function Specifications() {
     setCreatePagePreselect({});
   };
 
+  const handleDeleteJob = async (jobId: string) => {
+    const confirmed = window.confirm(`Delete job "${jobId}" and all its pages? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await dbService.deleteJob(jobId);
+      toast.success('Job deleted successfully');
+      if (selectedJobId === jobId) {
+        setSelectedJobId('');
+        setPages([]);
+      }
+      await loadJobs();
+    } catch (error) {
+      toast.error('Failed to delete job');
+    }
+  };
+
   const handleDeletePage = async (pageNumber: string) => {
     if (!selectedJobId) return;
     
@@ -259,17 +276,32 @@ export function Specifications() {
                   </h3>
                   <div className="space-y-1">
                     {categoryJobs.map((job) => (
-                      <button
+                      <div
                         key={job.id}
-                        onClick={() => setSelectedJobId(job.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md font-mono text-sm transition-colors ${
+                        className={`flex items-center gap-1 rounded-md transition-colors ${
                           selectedJobId === job.id
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-muted'
                         }`}
                       >
-                        {job.id}
-                      </button>
+                        <button
+                          onClick={() => setSelectedJobId(job.id)}
+                          className="flex-1 text-left px-3 py-2 font-mono text-sm"
+                        >
+                          {job.id}
+                        </button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteJob(job.id);
+                          }}
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0 mr-1"
+                        >
+                          <Trash size={14} />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>

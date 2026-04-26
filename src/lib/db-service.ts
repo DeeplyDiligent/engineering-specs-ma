@@ -43,6 +43,13 @@ export const dbService = {
     await set(jobRef, job);
   },
 
+  async deleteJob(jobId: string): Promise<void> {
+    const jobRef = ref(db, `jobs/${jobId}`);
+    const pagesRef = ref(db, `pages/${jobId}`);
+    await remove(pagesRef);
+    await remove(jobRef);
+  },
+
   async getPageData(jobId: string, pageNumber: string): Promise<PageData | null> {
     const pageRef = ref(db, `pages/${jobId}/${pageNumber}`);
     const snapshot = await get(pageRef);
