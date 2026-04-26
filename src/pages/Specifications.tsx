@@ -79,8 +79,12 @@ export function Specifications() {
 
   const resolvePageName = (pageData: PageData, schema: CategoryMeta | null): string => {
     if (!schema) return 'Unknown';
-    const pageDataBlocks = Object.keys(pageData.values);
-    const foundPage = schema.pages.find((p: PageSchema) => 
+    if (pageData.pageSchemaId) {
+      const foundPage = schema.pages.find((p: PageSchema) => p.id === pageData.pageSchemaId);
+      if (foundPage) return foundPage.name;
+    }
+    const pageDataBlocks = Object.keys(pageData.values || {});
+    const foundPage = schema.pages.find((p: PageSchema) =>
       p.blocks.some(b => pageDataBlocks.includes(b.id))
     );
     return foundPage?.name || 'Unknown';

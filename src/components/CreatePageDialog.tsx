@@ -134,6 +134,7 @@ export function CreatePageDialog({
         jobId,
         pageNumber,
         categoryId,
+        pageSchemaId: selectedPage.id,
         values: initialValues
       });
 
