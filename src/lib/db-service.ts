@@ -25,13 +25,25 @@ function getMock<T>(path: string[]): T | undefined {
   return node as T;
 }
 
+function normalizeCategory(cat: CategoryMeta): CategoryMeta {
+  const pages = Array.isArray(cat.pages) ? cat.pages : [];
+  return {
+    ...cat,
+    pages: pages.map(page => ({
+      ...page,
+      blocks: Array.isArray(page.blocks) ? page.blocks : []
+    }))
+  };
+}
+
 export const dbService = {
   async getSchema(categoryId: string): Promise<CategoryMeta | null> {
     const mock = getMock<CategoryMeta>(['schemas', categoryId]);
     if (mock !== undefined) return mock;
     const schemaRef = ref(db, `schemas/${categoryId}`);
     const snapshot = await get(schemaRef);
-    return snapshot.exists() ? snapshot.val() : null;
+    if (!snapshot.exists()) return null;
+    return normalizeCategory(snapshot.val());
   },
 
   async getAllSchemas(): Promise<Record<string, CategoryMeta>> {
@@ -39,7 +51,11 @@ export const dbService = {
     if (mock !== undefined) return mock;
     const schemasRef = ref(db, 'schemas');
     const snapshot = await get(schemasRef);
-    return snapshot.exists() ? snapshot.val() : {};
+    if (!snapshot.exists()) return {};
+    const data = snapshot.val() as Record<string, CategoryMeta>;
+    return Object.fromEntries(
+      Object.entries(data).map(([key, cat]) => [key, normalizeCategory(cat)])
+    );
   },
 
   async saveSchema(categoryId: string, schema: CategoryMeta): Promise<void> {
