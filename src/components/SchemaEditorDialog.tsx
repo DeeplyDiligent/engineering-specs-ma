@@ -211,19 +211,21 @@ export function SchemaEditorDialog({ open, onOpenChange }: SchemaEditorDialogPro
     setLoading(true);
     try {
       const allJobs = await dbService.getAllJobs();
-      const hasJobs = Object.values(allJobs).some(j => j.categoryId === categoryId);
+      const jobList = Object.values(allJobs);
+
+      const hasJobs = jobList.some(j => j.categoryId === categoryId);
       if (hasJobs) {
         toast.error('Cannot delete: there are jobs in this category');
         return;
       }
 
-      for (const job of Object.values(allJobs)) {
-        const jobPages = await dbService.getJobPages(job.id);
-        const hasPages = Object.values(jobPages).some(p => p.categoryId === categoryId);
-        if (hasPages) {
-          toast.error('Cannot delete: there are pages created for this category');
-          return;
-        }
+      const allJobPages = await Promise.all(jobList.map(job => dbService.getJobPages(job.id)));
+      const hasPages = allJobPages.some(jobPages =>
+        Object.values(jobPages).some(p => p.categoryId === categoryId)
+      );
+      if (hasPages) {
+        toast.error('Cannot delete: there are pages created for this category');
+        return;
       }
 
       await dbService.deleteSchema(categoryId);
@@ -245,13 +247,14 @@ export function SchemaEditorDialog({ open, onOpenChange }: SchemaEditorDialogPro
     setLoading(true);
     try {
       const allJobs = await dbService.getAllJobs();
-      for (const job of Object.values(allJobs)) {
-        const jobPages = await dbService.getJobPages(job.id);
-        const hasPages = Object.values(jobPages).some(p => p.pageSchemaId === pageId);
-        if (hasPages) {
-          toast.error('Cannot delete: there are pages created for this page schema');
-          return;
-        }
+      const jobList = Object.values(allJobs);
+      const allJobPages = await Promise.all(jobList.map(job => dbService.getJobPages(job.id)));
+      const hasPages = allJobPages.some(jobPages =>
+        Object.values(jobPages).some(p => p.pageSchemaId === pageId)
+      );
+      if (hasPages) {
+        toast.error('Cannot delete: there are pages created for this page schema');
+        return;
       }
 
       const updatedPages = selectedCategory.pages.filter(p => p.id !== pageId);
