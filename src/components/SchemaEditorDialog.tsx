@@ -204,6 +204,67 @@ export function SchemaEditorDialog({ open, onOpenChange }: SchemaEditorDialogPro
     }
   };
 
+  const handleDeleteCategory = async (categoryId: string) => {
+    const confirmed = window.confirm('Delete this category? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const allJobs = await dbService.getAllJobs();
+      const hasJobs = Object.values(allJobs).some(j => j.categoryId === categoryId);
+      if (hasJobs) {
+        toast.error('Cannot delete: there are jobs in this category');
+        return;
+      }
+
+      for (const job of Object.values(allJobs)) {
+        const jobPages = await dbService.getJobPages(job.id);
+        const hasPages = Object.values(jobPages).some(p => p.categoryId === categoryId);
+        if (hasPages) {
+          toast.error('Cannot delete: there are pages created for this category');
+          return;
+        }
+      }
+
+      await dbService.deleteSchema(categoryId);
+      toast.success('Category deleted successfully');
+      await loadCategories();
+    } catch (error) {
+      toast.error('Failed to delete category');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePageSchema = async (pageId: string) => {
+    if (!selectedCategory) return;
+
+    const confirmed = window.confirm('Delete this page schema? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const allJobs = await dbService.getAllJobs();
+      for (const job of Object.values(allJobs)) {
+        const jobPages = await dbService.getJobPages(job.id);
+        const hasPages = Object.values(jobPages).some(p => p.pageSchemaId === pageId);
+        if (hasPages) {
+          toast.error('Cannot delete: there are pages created for this page schema');
+          return;
+        }
+      }
+
+      const updatedPages = selectedCategory.pages.filter(p => p.id !== pageId);
+      await dbService.saveSchema(selectedCategoryId, { ...selectedCategory, pages: updatedPages });
+      toast.success('Page schema deleted successfully');
+      await loadCategories();
+    } catch (error) {
+      toast.error('Failed to delete page schema');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -226,9 +287,22 @@ export function SchemaEditorDialog({ open, onOpenChange }: SchemaEditorDialogPro
                   className="p-4 cursor-pointer hover:border-accent transition-colors"
                   onClick={() => handleSelectCategory(cat.id)}
                 >
-                  <h3 className="font-semibold">{cat.name}</h3>
-                  <p className="text-sm text-muted-foreground font-mono mt-1">{cat.id}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{cat.pages.length} pages</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold">{cat.name}</h3>
+                      <p className="text-sm text-muted-foreground font-mono mt-1">{cat.id}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{cat.pages.length} pages</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat.id); }}
+                      disabled={loading}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash size={16} />
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -289,9 +363,22 @@ export function SchemaEditorDialog({ open, onOpenChange }: SchemaEditorDialogPro
                   className="p-4 cursor-pointer hover:border-accent transition-colors"
                   onClick={() => handleSelectPage(page.id)}
                 >
-                  <h4 className="font-medium">{page.name}</h4>
-                  <p className="text-sm text-muted-foreground font-mono mt-1">{page.id}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{page.blocks.length} blocks</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-medium">{page.name}</h4>
+                      <p className="text-sm text-muted-foreground font-mono mt-1">{page.id}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{page.blocks.length} blocks</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => { e.stopPropagation(); handleDeletePageSchema(page.id); }}
+                      disabled={loading}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash size={16} />
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>
